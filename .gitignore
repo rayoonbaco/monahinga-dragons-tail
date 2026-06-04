@@ -1,0 +1,15 @@
+# Dragon's Tail local build/test noise
+backups/
+__pycache__/
+*.pyc
+qa/last_smoke_report.txt
+.DS_Store
+Thumbs.db
+# Dragon's Tail local patch / handoff artifacts
+*_patch.py
+dragon_tail_pass*.py
+*_patch.zip
+patch_*.zip
+public.zip
+screenshots/
+*.log

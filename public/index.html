@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MONAHINGA™ Dragon's Tail - Public Decision Room</title>
+  <meta name="description" content="Dragon's Tail turns hot AI claims into fair, conditional decision cards." />
+  <link rel="icon" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="styles.css?v=dragon-tail-pass58-demo-scenarios" />
+  <script defer src="app.js?v=dragon-tail-pass65-clean-appjs-20260604"></script>
+</head>
+<body>
+  <div class="bg-dragon" aria-hidden="true"></div>
+  <div class="page-shell" id="appRoot">
+    <header class="topbar" aria-label="Dragon's Tail navigation">
+      <a class="brand" href="#top" aria-label="Dragon's Tail home">
+        <span class="brand-mark">D</span>
+        <span>DRAGON'S TAIL</span>
+      </a>
+      <nav class="nav-pill" aria-label="Primary sections">
+        <a href="#questionStage">Question</a>
+        <a href="#decisionCard">Card</a>
+        <a href="#engineRoom">Inspect</a>
+      </nav>
+      <div class="evidence-led"><span></span>Public-first · evidence-weighted</div>
+    </header>
+
+    <main id="top" class="one-screen" aria-label="Dragon's Tail one-screen decision room">
+      <section class="left-stage" id="questionStage" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <div class="eyebrow">Public decision room for the agentic era</div>
+          <h1 id="heroTitle">One question. Two honest sides. One conditional card.</h1>
+          <p>Dragon's Tail turns heated claims into a decision card: two honest sides, the evidence burden, and the test that would change the call.</p>
+        </div>
+
+        <aside class="los-alamos" aria-label="Why the Los Alamos reference matters">
+          <div class="eyebrow">Why Los Alamos matters</div>
+          <div class="los-grid">
+            <div><b>New power</b><span>brings real risk.</span></div>
+            <div><b>Confidence</b><span>can outrun safeguards.</span></div>
+            <div><b>Better rooms</b><span>make better calls.</span></div>
+          </div>
+        </aside>
+
+        <section class="question-card" aria-label="Question controls">
+          <label for="questionInput">Run a claim through Dragon's Tail</label>
+          <div class="input-row">
+            <textarea id="questionInput" rows="1">Are AI data centers worth the cost?</textarea>
+            <button id="runQuestion" class="primary-button" type="button">Build card</button>
+          </div>
+          <div class="topic-strip" id="topicButtons" aria-label="Demo questions"></div>
+        </section>
+
+        <section class="visible-agent-run" id="visibleAgentRun" aria-label="Decision Room agentic process">
+          <div class="visible-agent-head">
+            <div>
+              <div class="label">CONTROLLED AGENTIC RITUAL</div>
+              <h3>Decision Room running</h3>
+            </div>
+            <p id="agentRunStatus">Ready. Build a card to run the claim through the room.</p>
+          </div>
+          <div class="visible-agent-steps" id="agentRunSteps">
+            <span data-run-step="frame"><b>1</b> Frame</span>
+            <span data-run-step="concern"><b>2</b> Concern</span>
+            <span data-run-step="abundance"><b>3</b> Abundance</span>
+            <span data-run-step="missing"><b>4</b> Missing evidence</span>
+            <span data-run-step="change"><b>5</b> Change test</span>
+            <span data-run-step="card"><b>6</b> Card</span>
+          </div>
+        </section>
+
+      </section>
+
+      <section class="right-stage" aria-label="Public decision output">
+        <section class="decision-card" id="decisionCard" aria-label="Public decision card">
+          <div class="dragon-seal" aria-hidden="true">◖</div>
+          <div class="card-main">
+            <div class="eyebrow">Decision card</div>
+            <h2 id="currentQuestion">Are AI data centers worth the cost?</h2>
+            <div class="call-row">
+              <div>
+                <span class="mini-label">Call</span>
+                <strong id="callText">Build with conditions.</strong>
+              </div>
+              <div class="signal-box">
+                <span class="mini-label">Five-year signal</span>
+                <b><span id="signalScore">65</span><em>/100</em></b>
+                <p id="signalLabel">Positive but conditional</p>
+              </div>
+            </div>
+            <p class="why-line"><b>Why:</b> <span id="whyText">Meaningful upside is plausible, but local burden, energy, and transparency gaps must be closed.</span></p>
+            <p class="burden-line"><b>Evidence burden:</b> <span id="evidenceBurdenText">Prove the public burden is bounded, visible, and matched by durable public benefit.</span></p>
+            <p class="posture-line"><b>Confidence posture:</b> <span id="confidencePostureText">Conditional prototype signal until source lanes are checked.</span></p>
+          </div>
+        </section>
+
+        <section class="comparison-grid" aria-label="Two-sided comparison">
+          <article class="case-card concern-case">
+            <div class="case-head"><span>△</span><b>Concern case</b></div>
+            <ul id="concernList"></ul>
+          </article>
+          <article class="case-card abundance-case">
+            <div class="case-head"><span>↗</span><b>Abundance case</b></div>
+            <ul id="abundanceList"></ul>
+          </article>
+          <article class="case-card change-case">
+            <div class="case-head"><span>⚖</span><b>Change test</b></div>
+            <div class="change-test-grid">
+              <div>
+                <b>Moves toward yes if</b>
+                <ul id="yesChangeList"></ul>
+              </div>
+              <div>
+                <b>Moves toward no if</b>
+                <ul id="noChangeList"></ul>
+              </div>
+            </div>
+            <p class="hold-line" id="holdLine">Hold the call conditional until the missing evidence is checked.</p>
+          </article>
+        </section>
+
+        <section class="actions" aria-label="Decision actions">
+          <button id="inspectButton" class="secondary-button" type="button" aria-expanded="false">Inspect evidence</button>
+          <button id="copyButton" class="gold-button" type="button">Copy public card</button>
+          <span id="copyStatus" role="status" aria-live="polite"></span>
+        </section>
+      </section>
+
+      <section class="engine-room" id="engineRoom" hidden aria-label="Evidence engine inspection room">
+        <div class="engine-head">
+          <div>
+            <div class="eyebrow">Inspect engine</div>
+            <h2>What sits underneath the simple card?</h2>
+            <p>This is builder mode. It shows the method, not a final research verdict. Live retrieval and citations are the next major platform layer.</p>
+          </div>
+          <button id="closeEngine" class="ghost-button" type="button">Close engine</button>
+        </div>
+        <div class="engine-grid evidence-engine-v3" aria-label="Evidence engine hierarchy">
+          <article class="engine-primary"><div class="engine-card-label">Primary inspection</div><h3>Source lanes to inspect</h3><p id="sourceLaneText">The engine separates source lanes before judgment so one persuasive story cannot carry the verdict.</p><ul id="sourceLaneList" class="engine-list lane-purpose-list"></ul></article>
+          <article class="engine-support"><div class="engine-card-label">Proof gaps</div><h3>Missing evidence</h3><ul id="missingEvidenceList" class="engine-list"></ul></article>
+          <article class="engine-support"><div class="engine-card-label">Burden test</div><h3>Evidence burden</h3><p id="engineBurdenText">The side asking for confidence has to prove the public burden is bounded and the upside is durable.</p></article>
+          <article class="engine-compact"><h3>Contradiction check</h3><p id="contradictionCheckText">Before confidence rises, compare public claims against primary records, affected people, implementation data, and independent analysis.</p></article>
+          <article class="engine-compact"><h3>Evidence weight guardrail</h3><p id="antiBiasText">Two honest sides does not mean equal evidence weight. Stronger source lanes should carry more weight once real records are inspected.</p></article>
+          <article class="engine-compact"><h3>What is not proven yet</h3><p id="notProvenText">This prototype maps the reasoning structure. It does not yet prove the live facts.</p></article>
+          <article class="engine-roadmap"><h3>Next research layer</h3><p id="researchLimitText">Live retrieval would fetch records, extract claims, score source quality, check contradictions, and cite the public card.</p></article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
