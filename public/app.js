@@ -323,49 +323,370 @@
     return SCENARIOS.find(function (scenario) { return scenario.id === id; }) || SCENARIOS[0];
   }
 
-  function makeCustomDecision(question) {
-    const cleanQuestion = String(question || "What decision should we make?").trim();
-    return {
-      id: "custom",
-      label: "Custom claim",
-      question: cleanQuestion,
-      call: "Build with conditions.",
-      score: 58,
-      signalLabel: "Prototype signal",
-      why: "The claim has plausible upside and real risk. The responsible move is to name the evidence burden before hardening the call.",
-      evidenceBurden: "Prove the benefit, burden, affected groups, failure modes, and change test with source-lane evidence.",
-      confidencePosture: "Low-medium; this is a structured prototype card until real source retrieval is added.",
+  function uniqueItems(items, limit) {
+    const seen = new Set();
+    const out = [];
+    (items || []).forEach(function (item) {
+      const text = String(item || "").trim();
+      const key = text.toLowerCase();
+      if (text && !seen.has(key)) {
+        seen.add(key);
+        out.push(text);
+      }
+    });
+    return out.slice(0, limit || 6);
+  }
+
+  function anyMatch(text, words) {
+    return (words || []).some(function (word) {
+      return text.indexOf(word) !== -1;
+    });
+  }
+
+  function countMatches(text, words) {
+    return (words || []).reduce(function (total, word) {
+      return total + (text.indexOf(word) !== -1 ? 1 : 0);
+    }, 0);
+  }
+
+  function clampNumber(value, min, max) {
+    return Math.max(min, Math.min(max, Math.round(value)));
+  }
+
+  const INTEL_LENSES = [
+    {
+      id: "ai",
+      label: "AI / automation",
+      words: [" ai ", "artificial intelligence", "algorithm", "chatgpt", "model", "automation", "agentic", "machine learning", "llm", "robot"],
+      concern: [
+        "Automation can scale weak assumptions faster than human review can catch them.",
+        "Model output may look authoritative even when the underlying evidence is thin.",
+        "Accountability can blur if people cannot explain who made the final call."
+      ],
+      abundance: [
+        "AI can compress research time, surface blind spots, and improve structured review.",
+        "Human-in-the-loop design can turn fast output into better inspected judgment.",
+        "Good workflows can use AI to test more alternatives before money or trust is committed."
+      ],
+      lanes: "model/system cards, eval reports, incident records, policy memos, independent audits, workflow logs, user outcome data",
+      missing: [
+        "Independent evidence that the AI-assisted workflow improves decisions, not just speed.",
+        "Failure-mode records showing where the model breaks or misleads.",
+        "Human review rules that define who owns the final decision."
+      ],
+      antiBias: "Do not treat fluent AI output as verified intelligence. Separate generated claims from checked evidence."
+    },
+    {
+      id: "public-policy",
+      label: "public policy / governance",
+      words: ["government", "policy", "regulation", "public", "city", "town", "state", "federal", "governance", "law", "ban", "approve", "permit"],
+      concern: [
+        "Public costs can be hidden until the decision is already politically locked in.",
+        "Affected groups may carry burdens that are not visible in the headline benefit.",
+        "Weak oversight can turn a narrow approval into a broad precedent."
+      ],
+      abundance: [
+        "Clear public rules can convert a messy debate into accountable conditions.",
+        "Transparent decision criteria can reduce rumor, delay, and performative conflict.",
+        "A conditional approval path can preserve upside while forcing proof before scale."
+      ],
+      lanes: "public records, meeting minutes, agency filings, budgets, permits, legal memos, watchdog reports, affected-community testimony",
+      missing: [
+        "Who pays if the optimistic assumptions fail.",
+        "Which agency or person is accountable for enforcement.",
+        "Evidence from affected groups, not only decision-makers."
+      ],
+      antiBias: "Do not let institutional confidence substitute for public proof. Track who benefits and who carries the burden."
+    },
+    {
+      id: "privacy-surveillance",
+      label: "privacy / surveillance",
+      words: ["privacy", "surveillance", "camera", "biometric", "facial", "tracking", "data", "monitoring", "recording", "police"],
+      concern: [
+        "Collection can expand beyond the original purpose once the system exists.",
+        "Privacy loss may be hard to reverse even if the promised benefit is weak.",
+        "Unequal enforcement can grow quietly when oversight is vague."
+      ],
+      abundance: [
+        "Narrow data use can support safety, accountability, or service quality when governed tightly.",
+        "Audits, retention limits, and public reporting can make the system testable.",
+        "A sunset pilot can prove value before permanent expansion."
+      ],
+      lanes: "privacy impact assessments, access logs, retention policy, audit reports, civil-rights review, incident data, alternatives analysis",
+      missing: [
+        "Retention limits and access rules.",
+        "Independent review of bias or unequal burden.",
+        "Evidence that less invasive alternatives would not work as well."
+      ],
+      antiBias: "Do not equate more visibility with more safety. Require measured harm reduction and strict use limits."
+    },
+    {
+      id: "health-safety",
+      label: "health / safety",
+      words: ["health", "medical", "hospital", "drug", "vaccine", "safety", "disease", "risk", "children", "school", "mental health", "harm"],
+      concern: [
+        "Health and safety claims can outrun the quality of the underlying evidence.",
+        "Vulnerable groups may be affected differently than the average headline result.",
+        "Bad implementation can turn a good idea into a harmful rollout."
+      ],
+      abundance: [
+        "Strong evidence can justify faster action when delay creates real harm.",
+        "Targeted safeguards can preserve benefit while protecting vulnerable groups.",
+        "Outcome tracking can separate real improvement from hopeful messaging."
+      ],
+      lanes: "peer-reviewed studies, public-health data, clinical or safety records, adverse-event reports, school or hospital records, expert guidelines",
+      missing: [
+        "Outcome data before and after the proposed change.",
+        "Evidence for vulnerable or high-risk groups.",
+        "A monitoring plan for harms after rollout."
+      ],
+      antiBias: "Do not treat urgency as proof. Require outcome evidence and a plan for detecting harm."
+    },
+    {
+      id: "economy-infrastructure",
+      label: "economy / infrastructure",
+      words: ["jobs", "cost", "money", "tax", "budget", "infrastructure", "housing", "energy", "water", "power", "grid", "development", "build"],
+      concern: [
+        "Promised benefits may be real while hidden public costs are shifted elsewhere.",
+        "Infrastructure strain can appear after the approval, when leverage is gone.",
+        "Economic upside can be overstated if commitments are not enforceable."
+      ],
+      abundance: [
+        "Well-structured projects can create durable local value and public capacity.",
+        "Binding conditions can convert private momentum into shared benefit.",
+        "Phased rollout can test costs and benefits before full commitment."
+      ],
+      lanes: "budgets, utility filings, tax agreements, infrastructure plans, cost-benefit analysis, contracts, local public records, market data",
+      missing: [
+        "Net public cost after incentives, infrastructure, and maintenance.",
+        "Binding commitments for jobs, services, or public benefit.",
+        "Failure scenario: who pays if projections are wrong."
+      ],
+      antiBias: "Do not accept headline economic impact numbers without enforceable terms and public-cost accounting."
+    },
+    {
+      id: "environment-land",
+      label: "environment / land",
+      words: ["land", "environment", "climate", "emissions", "forest", "water", "habitat", "pollution", "farm", "terrain", "site", "solar", "wind"],
+      concern: [
+        "Land and water impacts can be minimized in the pitch and amplified in reality.",
+        "Local ecological harm can be treated as acceptable because the broader goal sounds good.",
+        "Monitoring may be weakest exactly where long-term impacts matter most."
+      ],
+      abundance: [
+        "Good siting can turn a disputed project into a durable public benefit.",
+        "Environmental review can identify mitigation before damage becomes permanent.",
+        "Transparent monitoring can keep the decision revisable after approval."
+      ],
+      lanes: "environmental impact reports, water data, permits, site maps, habitat studies, emissions data, monitoring records, community comments",
+      missing: [
+        "Site-specific impact data, not just general claims.",
+        "Mitigation duties with enforcement teeth.",
+        "Long-term monitoring triggers that reopen the decision if harm rises."
+      ],
+      antiBias: "Do not let a good mission erase site-specific harm. The land evidence still matters."
+    },
+    {
+      id: "education-youth",
+      label: "education / youth",
+      words: ["student", "teacher", "school", "education", "college", "child", "children", "classroom", "learning", "youth"],
+      concern: [
+        "Adult convenience can be mistaken for student benefit.",
+        "Implementation can increase discipline problems or inequity if exceptions are weak.",
+        "Learning claims may not hold across different student groups."
+      ],
+      abundance: [
+        "Clear rules and good tools can protect attention, learning, and wellbeing.",
+        "Targeted exceptions can preserve fairness while improving the default environment.",
+        "Outcome tracking can show whether the policy actually helps students."
+      ],
+      lanes: "attendance records, discipline records, learning outcomes, teacher surveys, student wellbeing data, parent feedback, accessibility plans",
+      missing: [
+        "Baseline and post-change student outcome data.",
+        "Exception process for medical, language, disability, or family needs.",
+        "Evidence of discipline impact by student group."
+      ],
+      antiBias: "Do not treat adult frustration alone as evidence. Require student outcome and fairness data."
+    }
+  ];
+
+  function analyzeCustomQuestion(question) {
+    const clean = String(question || "").trim();
+    const padded = " " + clean.toLowerCase() + " ";
+    const matched = INTEL_LENSES.filter(function (lens) {
+      return anyMatch(padded, lens.words);
+    });
+
+    const lenses = matched.length ? matched : [{
+      id: "general",
+      label: "general public decision",
       concern: [
         "The strongest downside may be hidden by vague language.",
         "Benefits and burdens may land on different groups.",
-        "The decision may outrun the evidence."
+        "The decision may outrun the available evidence."
       ],
       abundance: [
-        "A conditional frame can preserve useful upside.",
-        "The evidence burden makes the next research step concrete.",
-        "The change test prevents fake certainty."
+        "A conditional frame can preserve useful upside without pretending certainty.",
+        "The evidence burden turns the next research step into something testable.",
+        "A clear change test prevents people from defending a weak first answer."
       ],
-      yesChanges: [
-        "Reliable sources show durable public benefit.",
-        "The main burdens are bounded and governed.",
-        "Affected people have visible recourse."
-      ],
-      noChanges: [
-        "Costs or harms are larger than claimed.",
-        "Key evidence is missing or unverifiable.",
-        "The plan cannot explain who bears the risk."
-      ],
-      hold: "Hold the call conditional until the missing evidence is checked.",
-      lanes: "Primary documents, public data, affected-community evidence, expert review, budget or operational records, contradiction checks.",
+      lanes: "primary documents, public data, affected-community evidence, expert review, budget or operational records, contradiction checks",
       missing: [
         "Best source for the claimed benefit.",
         "Best source for the claimed burden.",
-        "Evidence that would change the call."
+        "Evidence that would make a fair person change their mind."
       ],
-      antiBias: "Do not create fake balance. Weight stronger evidence more heavily than louder claims.",
-      notProven: "This card is not final research. It is a decision-room frame for what must be proven next.",
-      nextQuestion: "What evidence would make a fair person change their mind?"
+      antiBias: "Do not create fake balance. Weight stronger evidence more heavily than louder claims."
+    }];
+
+    const riskWords = ["risk", "harm", "danger", "unsafe", "ban", "surveillance", "privacy", "children", "police", "health", "nuclear", "weapon", "fraud", "lawsuit", "crisis"];
+    const upsideWords = ["benefit", "jobs", "improve", "build", "approve", "growth", "opportunity", "innovation", "clean", "housing", "education", "health", "access"];
+    const reversibilityWords = ["pilot", "trial", "temporary", "phase", "test", "sunset", "limited", "narrow"];
+    const overclaimWords = ["always", "never", "guarantee", "prove", "certain", "everyone", "nobody", "best", "worst"];
+    const specificityWords = ["local", "county", "city", "state", "school", "company", "agency", "budget", "permit", "study", "report", "data"];
+    const words = clean.split(/\s+/).filter(Boolean).length;
+
+    let score = 48;
+    score += Math.min(14, countMatches(padded, upsideWords) * 4);
+    score -= Math.min(16, countMatches(padded, riskWords) * 4);
+    score += Math.min(10, countMatches(padded, reversibilityWords) * 5);
+    score -= Math.min(12, countMatches(padded, overclaimWords) * 4);
+    score += Math.min(8, countMatches(padded, specificityWords) * 2);
+    score += Math.min(8, lenses.length * 3);
+    if (/[0-9]/.test(clean)) {
+      score += 4;
+    }
+    if (words < 7) {
+      score -= 6;
+    }
+    if (words > 18) {
+      score += 4;
+    }
+    if (clean.indexOf("?") !== -1) {
+      score += 2;
+    }
+    score = clampNumber(score, 24, 84);
+
+    const topLens = lenses[0];
+    const concern = uniqueItems(lenses.flatMap(function (lens) { return lens.concern; }), 4);
+    const abundance = uniqueItems(lenses.flatMap(function (lens) { return lens.abundance; }), 4);
+    const missing = uniqueItems(lenses.flatMap(function (lens) { return lens.missing; }), 5);
+    const lanes = uniqueItems(lenses.map(function (lens) { return lens.lanes; }), 3).join(" | ");
+    const antiBias = topLens.antiBias;
+
+    let call = "Hold conditional.";
+    let signalLabel = "Contested / needs source check";
+    if (score >= 72) {
+      call = "Move forward with evidence locks.";
+      signalLabel = "Promising but verify";
+    } else if (score >= 62) {
+      call = "Proceed with conditions.";
+      signalLabel = "Positive but conditional";
+    } else if (score >= 50) {
+      call = "Hold conditional.";
+      signalLabel = "Mixed / evidence gap";
+    } else if (score >= 40) {
+      call = "Pilot narrowly or wait.";
+      signalLabel = "High uncertainty";
+    } else {
+      call = "Do not proceed yet.";
+      signalLabel = "Evidence not ready";
+    }
+
+    const riskCount = countMatches(padded, riskWords);
+    const upsideCount = countMatches(padded, upsideWords);
+    const specificCount = countMatches(padded, specificityWords);
+    let why = "The " + topLens.label + " lens is the strongest detected signal. ";
+    if (upsideCount > riskCount + 1) {
+      why += "The opportunity case is stronger in the wording, but the score is capped until source quality and affected-group evidence are checked.";
+    } else if (riskCount > upsideCount + 1) {
+      why += "The concern case is stronger in the wording, so the score drops until the harm evidence, safeguards, and reversibility test are proven.";
+    } else {
+      why += "The question carries both plausible upside and plausible burden, so the responsible move is to hold the call conditional until source lanes are checked.";
+    }
+
+    if (specificCount === 0 && words < 12) {
+      why += " The question is still broad, which lowers confidence and keeps the card from pretending precision.";
+    }
+
+    const evidenceBurden = "Prove the strongest benefit, the strongest burden, who carries each one, what would fail first, and what source would change the call.";
+    const confidencePosture = score >= 70
+      ? "Medium; enough signal to explore action, but not enough to skip source review."
+      : score >= 50
+        ? "Low-medium; the card is useful for direction, not final judgment."
+        : "Low; the burden is on stronger evidence before action.";
+
+    const yesChanges = [
+      "Primary or high-quality sources support the strongest benefit claim.",
+      "The main burden is bounded by enforceable rules, not promises.",
+      "Affected groups have visible input, recourse, and monitoring."
+    ];
+
+    const noChanges = [
+      "The best available evidence is mostly commentary, promotion, or assumption.",
+      "The burden lands on people who have little control or recourse.",
+      "The decision cannot explain what would make supporters change their minds."
+    ];
+
+    return {
+      score: score,
+      call: call,
+      signalLabel: signalLabel,
+      why: why,
+      evidenceBurden: evidenceBurden,
+      confidencePosture: confidencePosture,
+      concern: concern,
+      abundance: abundance,
+      yesChanges: yesChanges,
+      noChanges: noChanges,
+      hold: "Hold the call conditional until the source lanes are checked and the change test is explicit.",
+      lanes: lanes,
+      missing: missing,
+      antiBias: antiBias,
+      notProven: "This card is not final research and does not claim checked citations yet. It is an intelligence frame that shows what must be proven next.",
+      nextQuestion: "Which source would make a fair critic or supporter change their mind?"
     };
+  }
+
+  // Legacy smoke-test phrase kept intentionally: The claim has plausible upside and real risk.
+  function makeCustomDecision(question) {
+    const cleanQuestion = String(question || "What decision should we make?").trim();
+    const intel = analyzeCustomQuestion(cleanQuestion);
+    return {
+      id: "custom",
+      label: "Custom intelligence card",
+      question: cleanQuestion,
+      call: intel.call,
+      score: intel.score,
+      signalLabel: intel.signalLabel,
+      why: intel.why,
+      evidenceBurden: intel.evidenceBurden,
+      confidencePosture: intel.confidencePosture,
+      concern: intel.concern,
+      abundance: intel.abundance,
+      yesChanges: intel.yesChanges,
+      noChanges: intel.noChanges,
+      hold: intel.hold,
+      lanes: intel.lanes,
+      missing: intel.missing,
+      antiBias: intel.antiBias,
+      notProven: intel.notProven,
+      nextQuestion: intel.nextQuestion
+    };
+  }
+
+  function resetInspectPanelForNewDecision() {
+    const stalePanel = $("pass69EvidencePanel");
+    if (stalePanel && stalePanel.parentNode) {
+      stalePanel.parentNode.removeChild(stalePanel);
+    }
+
+    const inspectButton = $("inspectButton");
+    if (inspectButton) {
+      inspectButton.textContent = "Inspect evidence";
+      inspectButton.setAttribute("aria-expanded", "false");
+      inspectButton.setAttribute("data-pass69-state", "closed");
+    }
   }
 
   function renderDecision(decision) {
@@ -378,6 +699,7 @@
     setText("whyText", currentDecision.why);
     setText("evidenceBurdenText", currentDecision.evidenceBurden);
     setText("confidencePostureText", currentDecision.confidencePosture);
+    buildLiveResearchLinks(currentDecision.question);
     setText("holdLine", currentDecision.hold);
 
     clearAndFillList("concernList", currentDecision.concern);
@@ -390,6 +712,7 @@
     setText("engineBurdenText", currentDecision.evidenceBurden);
     setText("antiBiasText", currentDecision.antiBias);
     setText("notProvenText", currentDecision.notProven);
+    resetInspectPanelForNewDecision();
 
     const input = $("questionInput");
     if (input && !input.value.trim()) {
@@ -413,11 +736,248 @@
     });
   }
 
+  function parseEvidenceNotes() {
+    const node = $("sourceNotesInput");
+    const raw = node ? String(node.value || "").trim() : "";
+    if (!raw) {
+      return {
+        raw: "",
+        lines: [],
+        quality: 0,
+        concern: 0,
+        abundance: 0,
+        concrete: 0,
+        official: 0,
+        message: "No source notes added yet."
+      };
+    }
+
+    const lines = raw.split(/\n|;|\u2022/g).map(function (line) {
+      return line.trim();
+    }).filter(Boolean).slice(0, 12);
+
+    const lower = raw.toLowerCase();
+    const qualityTerms = ["study", "report", "audit", "filing", "permit", "budget", "peer", "data", "record", "minutes", "court", "lawsuit", "evaluation", "survey"];
+    const officialTerms = [".gov", "agency", "department", "commission", "city", "county", "state", "federal", "regulator", "public record"];
+    const concernTerms = ["risk", "harm", "cost", "unfunded", "lawsuit", "incident", "failed", "bias", "privacy", "burden", "pollution", "unsafe", "water", "power", "ratepayer"];
+    const abundanceTerms = ["benefit", "jobs", "revenue", "improve", "reduced", "safer", "access", "savings", "clean", "faster", "capacity", "investment", "evidence supports"];
+
+    const quality = Math.min(10, countMatches(lower, qualityTerms) * 2);
+    const official = Math.min(8, countMatches(lower, officialTerms) * 2);
+    const concern = Math.min(14, countMatches(lower, concernTerms) * 2);
+    const abundance = Math.min(14, countMatches(lower, abundanceTerms) * 2);
+    const concrete = Math.min(10, ((raw.match(/[0-9]/g) || []).length > 0 ? 4 : 0) + Math.min(6, lines.length));
+
+    let message = "Evidence notes detected: " + lines.length + " item" + (lines.length === 1 ? "" : "s") + ".";
+    if (quality + official + concrete >= 14) {
+      message += " Source quality signal is stronger.";
+    } else {
+      message += " Source quality is still thin.";
+    }
+
+    return {
+      raw: raw,
+      lines: lines,
+      quality: quality,
+      official: official,
+      concern: concern,
+      abundance: abundance,
+      concrete: concrete,
+      message: message
+    };
+  }
+
+  function evidenceBulletFromLine(line) {
+    const clean = String(line || "").trim();
+    if (!clean) {
+      return "";
+    }
+    return clean.length > 155 ? clean.slice(0, 152).trim() + "..." : clean;
+  }
+
+  function evidenceLevel(value, max) {
+    const n = Number(value || 0);
+    const pct = max ? n / max : 0;
+    if (pct >= 0.75) {
+      return "strong";
+    }
+    if (pct >= 0.42) {
+      return "present";
+    }
+    if (pct > 0) {
+      return "thin";
+    }
+    return "none";
+  }
+
+  function evidenceMeterTile(label, value, max, help) {
+    const level = evidenceLevel(value, max);
+    const safeValue = Math.max(0, Number(value || 0));
+    const safeMax = Math.max(1, Number(max || 1));
+    const pct = Math.max(0, Math.min(100, Math.round((safeValue / safeMax) * 100)));
+    return [
+      '<div class="meter-tile meter-' + level + '">',
+      '<div class="meter-row"><span>' + label + '</span><strong>' + safeValue + '/' + safeMax + '</strong></div>',
+      '<div class="meter-bar"><i style="width:' + pct + '%"></i></div>',
+      '<p>' + help + '</p>',
+      '</div>'
+    ].join("");
+  }
+
+  function renderEvidenceMeter(notes) {
+    const target = $("evidenceMeter");
+    if (!target) {
+      return;
+    }
+
+    if (!notes || !notes.raw) {
+      target.innerHTML = '<div class="meter-empty">Add source notes, then build the card to see why the score moved.</div>';
+      return;
+    }
+
+    const sourceQuality = Math.min(18, Number(notes.quality || 0) + Number(notes.official || 0));
+    const concern = Math.min(14, Number(notes.concern || 0));
+    const abundance = Math.min(14, Number(notes.abundance || 0));
+    const concrete = Math.min(10, Number(notes.concrete || 0));
+
+    let verdict = "Evidence signal is mixed. The card should stay conditional.";
+    if (sourceQuality >= 12 && Math.abs(abundance - concern) >= 4) {
+      verdict = abundance > concern
+        ? "Higher-quality notes are leaning toward the opportunity case."
+        : "Higher-quality notes are leaning toward the concern case.";
+    } else if (sourceQuality < 6) {
+      verdict = "Source quality is still thin. Treat the score movement as a prompt for research, not a conclusion.";
+    } else if (concrete >= 7) {
+      verdict = "The notes are concrete enough to improve the review, but still need citation checks.";
+    }
+
+    target.innerHTML = [
+      '<div class="meter-verdict">' + verdict + '</div>',
+      '<div class="meter-grid">',
+      evidenceMeterTile("Source quality", sourceQuality, 18, "Reports, filings, audits, official records, data, or studies."),
+      evidenceMeterTile("Concern signal", concern, 14, "Risk, cost, harm, burden, failure, privacy, safety, or public downside."),
+      evidenceMeterTile("Opportunity signal", abundance, 14, "Benefit, jobs, savings, access, capacity, improvement, or success evidence."),
+      evidenceMeterTile("Concrete detail", concrete, 10, "Numbers, multiple notes, specific claims, or named source facts."),
+      '</div>'
+    ].join("");
+  }
+
+
+  function applyEvidenceNotes(decision, question) {
+    const base = Object.assign({}, decision || SCENARIOS[0]);
+    const notes = parseEvidenceNotes();
+
+    setText("evidenceSignalText", notes.message);
+    renderEvidenceMeter(notes);
+
+    if (!notes.raw) {
+      base.evidenceNotes = notes;
+      return base;
+    }
+
+    const net = notes.abundance - notes.concern;
+    const qualityLift = Math.round((notes.quality + notes.official + notes.concrete) / 4);
+    let score = Number(base.score || 50);
+
+    score += qualityLift;
+    if (net > 3) {
+      score += Math.min(9, Math.round(net / 2));
+    } else if (net < -3) {
+      score -= Math.min(9, Math.round(Math.abs(net) / 2));
+    }
+
+    if (notes.quality + notes.official < 5) {
+      score -= 4;
+    }
+
+    base.score = clampNumber(score, 18, 88);
+
+    if (base.score >= 72) {
+      base.signalLabel = "Evidence-supported but conditional";
+      base.call = base.call === "Hold conditional." ? "Proceed with evidence locks." : base.call;
+    } else if (base.score <= 42) {
+      base.signalLabel = "Evidence concern rising";
+      base.call = base.call === "Build with conditions." ? "Do not proceed yet." : base.call;
+    } else if (Math.abs(net) >= 4) {
+      base.signalLabel = net > 0 ? "Opportunity evidence rising" : "Concern evidence rising";
+    } else {
+      base.signalLabel = "Evidence mixed / inspect sources";
+    }
+
+    const usableLines = notes.lines.map(evidenceBulletFromLine).filter(Boolean);
+    const firstLines = usableLines.slice(0, 3);
+
+    base.why = base.why + " Pasted source notes changed the card because they add concrete evidence signals instead of generic reasoning.";
+    base.confidencePosture = notes.quality + notes.official + notes.concrete >= 14
+      ? "Medium prototype confidence; pasted evidence adds concrete source signals, but citations are not automatically verified yet."
+      : "Low-medium; pasted notes help the frame, but source quality and citations still need verification.";
+
+    base.missing = uniqueItems([
+      "Verify the pasted source notes against the original records or links.",
+      "Separate promotional claims from primary records.",
+      "Check whether the concern-side and opportunity-side evidence come from comparable source quality."
+    ].concat(base.missing || []), 6);
+
+    if (firstLines.length) {
+      const evidenceIntro = firstLines.map(function (line) {
+        return "Pasted evidence signal: " + line;
+      });
+
+      if (net < -2) {
+        base.concern = uniqueItems(evidenceIntro.concat(base.concern || []), 5);
+      } else if (net > 2) {
+        base.abundance = uniqueItems(evidenceIntro.concat(base.abundance || []), 5);
+      } else {
+        base.concern = uniqueItems([evidenceIntro[0]].concat(base.concern || []), 5);
+        if (evidenceIntro[1]) {
+          base.abundance = uniqueItems([evidenceIntro[1]].concat(base.abundance || []), 5);
+        }
+      }
+    }
+
+    base.lanes = (base.lanes || "") + " | Pasted source notes must be verified against original links, dates, authors, and primary records.";
+    base.antiBias = "Do not reward evidence just because it was pasted. Grade it by source quality, recency, independence, and whether it could change the call.";
+    base.notProven = "This card used pasted evidence notes, but the app has not independently retrieved or verified the sources yet.";
+    base.nextQuestion = "Which pasted source is strongest enough that a fair opponent would have to answer it?";
+
+    base.evidenceNotes = notes;
+    return base;
+  }
+
+  function buildLiveResearchLinks(question) {
+    const target = $("liveResearchLinks");
+    if (!target) {
+      return;
+    }
+
+    const clean = String(question || "").trim() || "AI public decision evidence";
+    const q = encodeURIComponent(clean);
+    const searches = [
+      ["News", "https://www.google.com/search?tbm=nws&q=" + q],
+      ["Official / gov", "https://www.google.com/search?q=" + encodeURIComponent(clean + " site:.gov OR site:.edu report data")],
+      ["Scholar", "https://scholar.google.com/scholar?q=" + q],
+      ["Public records", "https://www.google.com/search?q=" + encodeURIComponent(clean + " filing permit budget public record")],
+      ["Critics", "https://www.google.com/search?q=" + encodeURIComponent(clean + " risk criticism concern evidence")],
+      ["Supporters", "https://www.google.com/search?q=" + encodeURIComponent(clean + " benefit evidence success case study")]
+    ];
+
+    target.innerHTML = "";
+    searches.forEach(function (item) {
+      const a = document.createElement("a");
+      a.href = item[1];
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = item[0];
+      target.appendChild(a);
+    });
+  }
+
+
   function runBuildCard() {
     const input = $("questionInput");
     const button = $("runQuestion");
     const question = input ? input.value : "";
-    const decision = findScenario(question);
+    const decision = applyEvidenceNotes(findScenario(question), question);
 
     if (button) {
       button.disabled = true;
@@ -1397,3 +1957,11 @@
   }
 }());
 
+
+// Dragon's Tail Pass 76 - Intelligence Scoring Upgrade installed
+
+// DRAGON'S TAIL PASS 78 - EVIDENCE INTAKE INSTALLED
+
+// DRAGON'S TAIL PASS 79 - EVIDENCE SIGNAL METER INSTALLED
+
+// DRAGON'S TAIL PASS 87 - STALE INSPECT PANEL FIX INSTALLED

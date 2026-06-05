@@ -48,9 +48,25 @@
             <textarea id="questionInput" rows="1">Are AI data centers worth the cost?</textarea>
             <button id="runQuestion" class="primary-button" type="button">Build card</button>
           </div>
-          <div class="topic-strip" id="topicButtons" aria-label="Demo questions"></div>
+                    <div class="evidence-intake compact-evidence-intake" id="evidenceIntake" aria-label="Optional evidence notes">
+            <div class="evidence-intake-head">
+              <div>
+                <div class="label">OPTIONAL SOURCE NOTES</div>
+                <h3>Make the card react to real evidence</h3>
+              </div>
+              <p>Paste facts, source notes, or links you already found. This is not automatic citation checking yet.</p>
+            </div>
+            <textarea id="sourceNotesInput" rows="4" placeholder="Example: Local utility filing says the project needs 80MW. City budget memo says road upgrades are unfunded. Company press release promises 200 jobs but no signed agreement yet."></textarea>
+            <div class="evidence-intake-foot">
+              <span id="evidenceSignalText">No source notes added yet.</span>
+              <span>Evidence-aware prototype. Checked citations come in the next backend layer.</span>
+            </div>
+            <div class="evidence-meter" id="evidenceMeter" aria-label="Evidence signal meter">
+              <div class="meter-empty">Add source notes, then build the card to see why the score moved.</div>
+            </div>
+          </div>
+<div class="topic-strip" id="topicButtons" aria-label="Demo questions"></div>
         </section>
-
         <section class="visible-agent-run" id="visibleAgentRun" aria-label="Decision Room agentic process">
           <div class="visible-agent-head">
             <div>
@@ -137,6 +153,7 @@
         </div>
         <div class="engine-grid evidence-engine-v3" aria-label="Evidence engine hierarchy">
           <article class="engine-primary"><div class="engine-card-label">Primary inspection</div><h3>Source lanes to inspect</h3><p id="sourceLaneText">The engine separates source lanes before judgment so one persuasive story cannot carry the verdict.</p><ul id="sourceLaneList" class="engine-list lane-purpose-list"></ul></article>
+          <article class="engine-support live-research-card"><div class="engine-card-label">Live research runway</div><h3>Open current source searches</h3><div id="liveResearchLinks" class="research-link-grid"></div><p class="mini-note">These open live searches. The app does not yet fetch or verify them automatically.</p></article>
           <article class="engine-support"><div class="engine-card-label">Proof gaps</div><h3>Missing evidence</h3><ul id="missingEvidenceList" class="engine-list"></ul></article>
           <article class="engine-support"><div class="engine-card-label">Burden test</div><h3>Evidence burden</h3><p id="engineBurdenText">The side asking for confidence has to prove the public burden is bounded and the upside is durable.</p></article>
           <article class="engine-compact"><h3>Contradiction check</h3><p id="contradictionCheckText">Before confidence rises, compare public claims against primary records, affected people, implementation data, and independent analysis.</p></article>
@@ -149,3 +166,9 @@
   </div>
 </body>
 </html>
+
+<!-- DRAGON'S TAIL PASS 78 - EVIDENCE INTAKE INSTALLED -->
+
+<!-- DRAGON'S TAIL PASS 79 - EVIDENCE SIGNAL METER INSTALLED -->
+
+<!-- DRAGON'S TAIL PASS 86 - SOURCE NOTES VISIBILITY INSTALLED -->

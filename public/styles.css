@@ -493,3 +493,217 @@ main{
   }
 }
 
+/* DRAGON'S TAIL PASS 78 - evidence intake and live research runway */
+.evidence-intake{
+  margin:12px 0 10px;
+  padding:14px;
+  border-radius:20px;
+  border:1px solid rgba(255,207,88,.24);
+  background:linear-gradient(135deg,rgba(44,28,0,.48),rgba(0,0,0,.44));
+  box-shadow:0 16px 38px rgba(0,0,0,.18);
+}
+.evidence-intake-head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-end;
+  margin-bottom:10px;
+}
+.evidence-intake-head h3{
+  margin:2px 0 0;
+  color:#fff0cf;
+  font-size:19px;
+}
+.evidence-intake-head p{
+  margin:0;
+  max-width:440px;
+  color:#dccfb8;
+  font-size:12px;
+  line-height:1.35;
+  text-align:right;
+}
+#sourceNotesInput{
+  width:100%;
+  min-height:82px;
+  resize:vertical;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(0,0,0,.5);
+  color:#f4ead9;
+  padding:12px 13px;
+  outline:none;
+  font:inherit;
+  line-height:1.35;
+}
+#sourceNotesInput:focus{
+  border-color:rgba(98,242,227,.55);
+  box-shadow:0 0 0 3px rgba(98,242,227,.1);
+}
+.evidence-intake-foot{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:8px;
+  color:#aeece5;
+  font-size:11px;
+  font-weight:850;
+}
+.evidence-intake-foot span:last-child{
+  color:#d6c6a8;
+  text-align:right;
+}
+.live-research-card{
+  border-color:rgba(255,207,88,.28) !important;
+  background:linear-gradient(135deg,rgba(46,27,0,.36),rgba(0,0,0,.34)) !important;
+}
+.research-link-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.research-link-grid a{
+  display:block;
+  padding:9px 10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.35);
+  color:#70f3e4;
+  text-decoration:none;
+  font-weight:950;
+  font-size:12px;
+}
+.research-link-grid a:hover{
+  border-color:rgba(255,207,88,.42);
+  color:#ffd46c;
+}
+.mini-note{
+  margin-top:10px !important;
+  color:#d7c9af !important;
+  font-size:12px;
+}
+@media(max-width:900px){
+  .evidence-intake-head,
+  .evidence-intake-foot{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .evidence-intake-head p,
+  .evidence-intake-foot span:last-child{
+    text-align:left;
+  }
+  .research-link-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* DRAGON'S TAIL PASS 79 - evidence signal meter */
+.evidence-meter{
+  margin-top:11px;
+}
+.meter-empty{
+  border:1px dashed rgba(255,255,255,.18);
+  background:rgba(0,0,0,.26);
+  border-radius:14px;
+  padding:10px 12px;
+  color:#d7c9af;
+  font-size:12px;
+  font-weight:850;
+}
+.meter-verdict{
+  border:1px solid rgba(98,242,227,.24);
+  background:linear-gradient(135deg,rgba(98,242,227,.12),rgba(255,207,88,.08));
+  color:#fff0cf;
+  border-radius:14px;
+  padding:10px 12px;
+  font-size:12px;
+  line-height:1.35;
+  font-weight:900;
+  margin-bottom:9px;
+}
+.meter-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.meter-tile{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.32);
+  border-radius:14px;
+  padding:10px;
+}
+.meter-row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  color:#fff0cf;
+  font-size:11px;
+  font-weight:950;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.meter-row strong{
+  color:#70f3e4;
+  white-space:nowrap;
+}
+.meter-bar{
+  height:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.1);
+  margin:8px 0;
+}
+.meter-bar i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#70f3e4,#ffd46c);
+}
+.meter-tile p{
+  margin:0;
+  color:#d6c6a8;
+  font-size:11px;
+  line-height:1.25;
+}
+.meter-none .meter-bar i{background:rgba(255,255,255,.18)}
+.meter-thin .meter-row strong{color:#ffcf58}
+.meter-present .meter-row strong{color:#70f3e4}
+.meter-strong{
+  border-color:rgba(98,242,227,.32);
+  box-shadow:0 0 0 1px rgba(98,242,227,.05) inset;
+}
+@media(max-width:980px){
+  .meter-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:560px){
+  .meter-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* DRAGON'S TAIL PASS 86 - source notes visibility fix */
+.question-card .compact-evidence-intake{
+  margin-top:12px;
+  border:1px solid rgba(255,207,88,.34);
+  background:linear-gradient(135deg,rgba(44,28,0,.58),rgba(0,0,0,.52));
+}
+.question-card .compact-evidence-intake .evidence-intake-head{
+  align-items:flex-start;
+}
+.question-card .compact-evidence-intake h3{
+  font-size:17px;
+}
+.question-card .compact-evidence-intake p{
+  max-width:360px;
+}
+.question-card #sourceNotesInput{
+  min-height:74px;
+}
+.question-card .meter-empty{
+  border-color:rgba(255,207,88,.28);
+}
+
